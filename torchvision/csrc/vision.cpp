@@ -12,6 +12,7 @@
 #include "PSROIAlign.h"
 #include "PSROIPool.h"
 #include "ROIAlign.h"
+#include "ROIAlign_3d.h"
 #include "ROIPool.h"
 #include "empty_tensor_op.h"
 #include "nms.h"
@@ -47,7 +48,11 @@ TORCH_LIBRARY(torchvision, m) {
   m.def(
       "roi_align(Tensor input, Tensor rois, float spatial_scale, int pooled_height, int pooled_width, int sampling_ratio, bool aligned) -> Tensor");
   m.def(
+      "roi_align_3d(Tensor input, Tensor rois, float spatial_scale, int pooled_height, int pooled_width, int pooled_depth, int sampling_ratio, bool aligned) -> Tensor");
+  m.def(
       "_roi_align_backward(Tensor grad, Tensor rois, float spatial_scale, int pooled_height, int pooled_width, int batch_size, int channels, int height, int width, int sampling_ratio, bool aligned) -> Tensor");
+  m.def(
+      "_roi_align_3d_backward(Tensor grad, Tensor rois, float spatial_scale, int pooled_height, int pooled_width, int pooled_depth, int batch_size, int channels, int height, int width, int depth, int sampling_ratio, bool aligned) -> Tensor");
   m.def("roi_pool", &roi_pool);
   m.def("_new_empty_tensor_op", &new_empty_tensor);
   m.def("ps_roi_align", &ps_roi_align);
@@ -66,7 +71,9 @@ TORCH_LIBRARY_IMPL(torchvision, CPU, m) {
 #if defined(WITH_CUDA) || defined(WITH_HIP)
 TORCH_LIBRARY_IMPL(torchvision, CUDA, m) {
   m.impl("roi_align", ROIAlign_forward_cuda);
+  m.impl("roi_align_3d", ROIAlign_3d_forward_cuda);
   m.impl("_roi_align_backward", ROIAlign_backward_cuda);
+  m.impl("_roi_align_3d_backward", ROIAlign_3d_backward_cuda);
   m.impl("nms", nms_cuda);
 }
 #endif
@@ -75,11 +82,14 @@ TORCH_LIBRARY_IMPL(torchvision, CUDA, m) {
 #if defined(WITH_CUDA)
 TORCH_LIBRARY_IMPL(torchvision, Autocast, m) {
   m.impl("roi_align", ROIAlign_autocast);
+  m.impl("roi_align_3d", ROIAlign_3d_autocast);
   m.impl("nms", nms_autocast);
 }
 #endif
 
 TORCH_LIBRARY_IMPL(torchvision, Autograd, m) {
   m.impl("roi_align", ROIAlign_autograd);
+  m.impl("roi_align_3d", ROIAlign_3d_autograd);
   m.impl("_roi_align_backward", ROIAlign_backward_autograd);
+  m.impl("_roi_align_3d_backward", ROIAlign_3d_backward_autograd);
 }
